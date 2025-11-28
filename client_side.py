@@ -59,7 +59,8 @@ def start_new_game(client_socket):
 
         newHand = client_socket.recv(1024).decode()
         if newHand.startswith("RedealtCards"):
-            userHand = newHand.strip(" ")[1]
+            parts = newHand.strip().split(" ")
+            userHand = " ".join(parts[1:])
             print("Users New Hand")
             print(userHand)
         elif newHand.startswith("DrawDeclinedOK"):
@@ -82,8 +83,9 @@ def start_new_game(client_socket):
 
         newBet = client_socket.recv(1024).decode()
         if newBet.startswith("BetRaised "):
-            userChips = newBet.strip(" ")[1]
-            currPool = newBet.strip(" ")[2]
+            parts = newBet.strip().split(" ")
+            userChips = parts[1]
+            currPool = parts[2]
             print("User Chips = " + str(userChips))
             print("Current Pool = " + str(currPool))
         elif newBet.startswith("CheckOK"):
@@ -125,7 +127,7 @@ def view_card_values():
 
 def client_main():
     server_IP = 'localhost'
-    server_port = 12002
+    server_port = 12003
     while True:
         client_socket = socket(AF_INET, SOCK_STREAM)
         client_socket.connect((server_IP, server_port))
