@@ -8,7 +8,7 @@ from _thread import *
 from random import *
 
 def start_new_game(client_socket):
-    userName = input("What is your user name? ")
+    userName = input("Enter Username: ")
     playingMessage = "PlayGame " + userName + " \n"
     client_socket.send(playingMessage.encode())
     gameResponse = client_socket.recv(1024).decode()
@@ -97,7 +97,43 @@ def start_new_game(client_socket):
 
 
 def view_scoreboard(client_socket):
-    print("NULL")
+    highscoreMessage = ""
+    while(True):
+        highscores_action = input("1 - View All Highscores\n"
+                                "2 - Search For Username in Highscores\n"
+                                "Enter Command:")
+        if highscores_action == "1":
+            highscoreMessage = "ShowHighscores \n"
+            break
+        elif highscores_action == "2":
+            username_search = input("Enter a username to search: ")
+            highscoreMessage = "FindHighscores " + username_search + " \n"
+            break
+        else:
+            print("INVALID INPUT")
+            break
+
+    client_socket.send(highscoreMessage.encode())
+    highscoreResponse = client_socket.recv(1024).decode()
+
+    #response if wanting entire highscore file
+    if highscoreResponse.startswith("EntireHighscore "):
+        removeHeader = highscoreResponse.replace("EntireHighscore ", "")
+        rows = removeHeader.split("\n")
+        for x in rows:
+            if not x.strip():
+                continue
+
+            parts = x.split(" ")
+            rank = parts[0]
+            username = parts[1]
+            score = parts[2]
+            print(f"Ranks: #{rank} -- {username} -- score: {score}")
+
+
+    elif highscoreResponse.startswith("UsernameSearch "):
+        print(highscoreResponse)
+
 def view_rules(client_socket):
     print("The player and bot will both draw five random cards.")
     print("The winner is decided by who has the most points.")
@@ -127,7 +163,7 @@ def view_card_values():
 
 def client_main():
     server_IP = 'localhost'
-    server_port = 12003
+    server_port = 12006
     while True:
         client_socket = socket(AF_INET, SOCK_STREAM)
         client_socket.connect((server_IP, server_port))
@@ -137,7 +173,7 @@ def client_main():
         print("2 - Look up rules.")
         print("3 - Look up card values.")
         print("4 - Look up highest score.")
-        print("Other - Exit the application.")
+        print("Q - Exit the application.")
 
         ##choice = input("Enter command: ")
         choice = input("Please make your choice.")

@@ -1,0 +1,4 @@
+rank,username,score
+1,John,33
+2,Steve,21
+3,Barry,11
