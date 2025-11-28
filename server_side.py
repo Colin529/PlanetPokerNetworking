@@ -58,13 +58,13 @@ def serverGame(connection_socket, userName):
 
     drawAction = connection_socket.recv(1024).decode()
     if drawAction.startswith("RedrawCards"):
-        cardIndex = drawAction.split(" ")[1]
-        numberOfCards = len(cardIndex)
-
-        for i in range(numberOfCards):
-            newCard = deckCard()
-            cardToReplace = int(cardIndex[i])
-            userHand[cardToReplace-1] = newCard
+        parts=drawAction.split(" ")
+        for i in parts[1:]:
+            if i.strip().isdigit():
+                cardToReplace = int(i)
+                if 1 <= cardToReplace <= 5:
+                    newCard = deckCard()
+                    userHand[cardToReplace-1] = newCard
 
         userHandString = " ".join(userHand)
         new_hand = "RedealtCards " + userHandString + " \n"
@@ -86,18 +86,11 @@ def serverGame(connection_socket, userName):
         print("User checks")
         connection_socket.send("CheckOK \n".encode())
 
-
-
-
-        
-
-
-
         
     
     
 def serverMain():
-    server_port = 12002
+    server_port = 12003
     server_socket = socket(AF_INET, SOCK_STREAM)
     server_socket.bind(("", server_port))
     server_socket.listen(1)
