@@ -196,6 +196,20 @@ def serverGame(connection_socket, userName):
         print("User checks")
         connection_socket.send("CheckOK \n".encode())
 
+    playHand = connection_socket.recv(1024).decode()
+    if playHand == "PlayingHand":
+        winnerNum = compareHands(userHand, compHand)
+        if winnerNum == 1:
+            #User wins
+            winnerAn = "User Wins."
+        elif winnerNum == 2:
+            winnerAn = "Computer Wins."
+        else:
+            winnerAn = "Tie."
+    elif playHand == "Fold":
+        winnerAn = "Computer Wins."
+    connection_socket.send(winnerAn.encode())
+
 def serverShowHighscores(connection_socket):
     responseMessage = "EntireHighscore "
     try:
