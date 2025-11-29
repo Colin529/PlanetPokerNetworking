@@ -71,8 +71,18 @@ def handValue(hand):
             #amountJup += 1
             amounts[7] += 1
 
-    pair, twoPairs, threeKind, straight, fullHouse, fourKind, fiveKind = False
-    whereThree, whereTwo,  whereFour, whereFive, endStraight = 0
+    pair = False
+    twoPairs = False
+    threeKind = False
+    straight = False
+    fullHouse = False
+    fourKind = False
+    fiveKind = False
+    whereThree = 0
+    whereTwo = 0
+    whereFour = 0 
+    whereFive = 0 
+    endStraight = 0
     for i in range(len(amounts)):
         if amounts[i] == 2:
             whereTwo = i
@@ -122,6 +132,8 @@ def handValue(hand):
         for i in range(len(amounts)):
             if amounts[i] == 1:
                 value = i
+    
+    print("Hand Value: " + str(value) + "\n")
     return value
 
 
@@ -134,12 +146,15 @@ def compareHands(userHand, compHand):
     ene = handValue(enemyHand)
     if(cur > ene):
         #User wins
+        print("User Wins \n")
         return 1
     elif(cur < ene):
         #Computer wins
+        print("Computer Wins \n")
         return 2
     else:
         #Tie
+        print("Tie\n")
         return 0
 
 
@@ -197,6 +212,7 @@ def serverGame(connection_socket, userName):
         connection_socket.send("CheckOK \n".encode())
 
     playHand = connection_socket.recv(1024).decode()
+    print(playHand)
     if playHand == "PlayingHand":
         winnerNum = compareHands(userHand, compHand)
         if winnerNum == 1:

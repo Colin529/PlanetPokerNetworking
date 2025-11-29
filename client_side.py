@@ -14,8 +14,10 @@ def start_new_game(client_socket):
     gameResponse = client_socket.recv(1024).decode()
     if "Welcome" in gameResponse:
         gameTime = True
-        if gameTime:
+        highestChips = 20
+        while gameTime:
             #Start the game
+            
             dealtHandMessage = client_socket.recv(1024).decode()
             if dealtHandMessage.startswith(userName):
 
@@ -41,78 +43,107 @@ def start_new_game(client_socket):
                 print(f"ERROR: Message in unexpected format. Message: '{dealtHandMessage}'")
                 return -1
 
-        print("Current Prize Pool = " + str(currPool))
-        print("User Chips = " + str(userChips) + "\n\n")
-        print("Users Hand:\n" + userHand + "\n")
+            print("Current Prize Pool = " + str(currPool))
+            print("User Chips = " + str(userChips) + "\n\n")
+            print("Users Hand:\n" + userHand + "\n")
 
-        #Redraw Cards Logic
-        userReplaceCards = input("Would you like to replace any of your cards? (y/n)")
-        if userReplaceCards.lower() == "y":
-            print("Current User Hand:\n" + userHand)
-            replaceCards = input("Which cards would you like to replace? (ex. 1 2 3 or 4 5)").strip()
-            redrawCardsMessage = "RedrawCards " + replaceCards + " \n"
-            client_socket.send(redrawCardsMessage.encode())
+            #Redraw Cards Logic
+            userReplaceCards = input("Would you like to replace any of your cards? (y/n)")
+            if userReplaceCards.lower() == "y":
+                print("Current User Hand:\n" + userHand)
+                replaceCards = input("Which cards would you like to replace? (ex. 1 2 3 or 4 5)").strip()
+                redrawCardsMessage = "RedrawCards " + replaceCards + " \n"
+                client_socket.send(redrawCardsMessage.encode())
 
-        else:
-            drawDeclineMessage = "DrawDecline"
-            client_socket.send(drawDeclineMessage.encode())
-
-        newHand = client_socket.recv(1024).decode()
-        if newHand.startswith("RedealtCards"):
-            parts = newHand.strip().split(" ")
-            userHand = " ".join(parts[1:])
-            print("Users New Hand")
-            print(userHand)
-        elif newHand.startswith("DrawDeclinedOK"):
-            print("User Declined Draw")
-
-
-        #Bet logic
-        userRaiseBet = input("Would you like to raise your bet? (y/n)")
-        if userRaiseBet.lower() == "y":
-            raiseAmount = input(f"How many chips would you like to raise? Current Amount: '{userChips}': ")
-            if int(raiseAmount) <= userChips:
-                raiseBetMessage = "RaiseBet " + raiseAmount + " \n"
-                client_socket.send(raiseBetMessage.encode())
-            elif int(raiseAmount) > userChips:
-                print("ERROR: Amount cannot be greater than your chips")
-                return -1
-        elif userRaiseBet.lower() == "n":
-            checkMessage = "check"
-            client_socket.send(checkMessage.encode())
-
-        newBet = client_socket.recv(1024).decode()
-        if newBet.startswith("BetRaised "):
-            parts = newBet.strip().split(" ")
-            userChips = parts[1]
-            currPool = parts[2]
-            print("User Chips = " + str(userChips))
-            print("Current Pool = " + str(currPool))
-        elif newBet.startswith("CheckOK"):
-            print("User Checked")
-
-        #Play or Fold
-        timeToPlayHand = input("Play Cards or Fold? (1 to play, 2 to fold)")
-        while True:
-            if timeToPlayHand == 1:
-                playTime = "PlayingHand"
-                break
-            elif timeToPlayHand == 2:
-                playTime = "Fold"
-                break
             else:
-                print("Invaild. Please try again.")
-        winner = client_socket.recv(1024).decode()
-        if winner.startswith("User"):
-            print(winner)
-            userChips += currPool
-        elif winner.startswith("Computer"):
-            print(winner)
-            userChips -= currPool
-        else:
-            print("Tie")
-        
-                
+                drawDeclineMessage = "DrawDecline"
+                client_socket.send(drawDeclineMessage.encode())
+
+            newHand = client_socket.recv(1024).decode()
+            if newHand.startswith("RedealtCards"):
+                parts = newHand.strip().split(" ")
+                userHand = " ".join(parts[1:])
+                print("Users New Hand")
+                print(userHand)
+            elif newHand.startswith("DrawDeclinedOK"):
+                print("User Declined Draw")
+
+
+            #Bet logic
+            userRaiseBet = input("Would you like to raise your bet? (y/n)")
+            if userRaiseBet.lower() == "y":
+                raiseAmount = input(f"How many chips would you like to raise? Current Amount: '{userChips}': ")
+                if int(raiseAmount) <= userChips:
+                    raiseBetMessage = "RaiseBet " + raiseAmount + " \n"
+                    client_socket.send(raiseBetMessage.encode())
+                elif int(raiseAmount) > userChips:
+                    print("ERROR: Amount cannot be greater than your chips")
+                    return -1
+            elif userRaiseBet.lower() == "n":
+                checkMessage = "Check "
+                client_socket.send(checkMessage.encode())
+
+            newBet = client_socket.recv(1024).decode()
+            if newBet.startswith("BetRaised "):
+                parts = newBet.strip().split(" ")
+                userChips = parts[1]
+                currPool = parts[2]
+                print("User Chips = " + str(userChips))
+                print("Current Pool = " + str(currPool))
+            elif newBet.startswith("CheckOK"):
+                print("User Checked")
+
+
+             #Play or Fold
+            timeToPlayHand = input("Play Cards or Fold? (1 to play, 2 to fold)")
+            while True:
+                if timeToPlayHand == "1":
+                    playTime = "PlayingHand"
+                    break
+                elif timeToPlayHand == "2":
+                    playTime = "Fold"
+                    break
+                else:
+                    print("Invaild. Please try again.")
+                    timeToPlayHand = input("(1 to play, 2 to fold)")
+            client_socket.send(playTime.encode())    
+            
+            winner = client_socket.recv(1024).decode()
+            if winner.startswith("User"):
+                print(winner)
+                userChips += currPool
+                if userChips > highestChips:
+                    highestChips = userChips
+            elif winner.startswith("Computer"):
+                print(winner)
+                userChips -= currPool
+            else:
+                print("Tie")
+
+
+
+            if userChips <= 0:
+                #Game end
+                print("Game Over.\n")
+                print("Thank you for playing.\n")
+                with open("highscore.txt", "a") as bread:
+                    bread.write(userName + ", " + str(highestChips))
+                bread.close()
+                gameTime = False
+            
+            cont = input("Another round? (y/n)\n")
+            if cont.lower() == "y":
+                #Continue on.
+                print("Good Luck.")
+            elif cont.lower() =="n":
+                #Quiting
+                print("Thank you for playing.\n")
+                with open("highscore.txt", "a") as bread:
+                    bread.write(userName + ", " + str(highestChips))
+                bread.close()
+                gameTime = False
+
+
     else:
         print(f"ERROR: Message in unexpected format. Message: '{gameResponse}'")
         return -1
