@@ -196,29 +196,49 @@ def serverGame(connection_socket, userName):
         print("User checks")
         connection_socket.send("CheckOK \n".encode())
 
+def serverShowHighscores(connection_socket):
+    responseMessage = "EntireHighscore "
+    try:
+        with open("highscore.txt", "r") as x:
+            lines = x.readlines()
+            #skip header
+            for line in lines[1:]:
+                parts = line.strip().split(',')
+                if len(parts) == 3:
+                    rank, username, score = parts
+                    responseMessage += f"{rank} {username} {score}\n"
+    except FileNotFoundError:
+        response = "Highscore file not found.\n"
 
-    playHand = connection_socket.recv(1024).decode()
-    if playHand == "PlayingHand":
-        winnerNum = compareHands(userHand, compHand)
-        if winnerNum == 1:
-            #User wins
-            winnerAn = "User Wins."
-        elif winnerNum == 2:
-            winnerAn = "Computer Wins."
-        else:
-            winnerAn = "Tie."
-    elif playHand == "Fold":
-        winnerAn = "Computer Wins."
-    connection_socket.send(winnerAn.encode())
-        
+    if not responseMessage:
+        responseMessage = "Highscore File Empty.\n"
 
+    connection_socket.send(responseMessage.encode())
+def serverFindHighscore(connection_socket, userName):
+    responseMessage = "UsernameSearch "
+    flag = False #have we found the username flag
+    try:
+        with open("highscore.txt", "r") as x:
+            lines = x.readlines()
+            #skip header
+            for line in lines[1:]:
+                parts = line.strip().split(',')
+                if len(parts) == 3:
+                    rank, username_found, score = parts
+                    if username_found.strip() == userName:
+                        responseMessage += f"Rank {rank}: {username_found} - {score}\n"
+                        flag = True
+                        break
+        if not flag:
+            responseMessage += "Username not found\n"
 
+    except FileNotFoundError:
+        responseMessage += "Highscore file not found\n"
 
-        
-    
-    
+    connection_socket.send(responseMessage.encode())
+
 def serverMain():
-    server_port = 12003
+    server_port = 12006
     server_socket = socket(AF_INET, SOCK_STREAM)
     server_socket.bind(("", server_port))
     server_socket.listen(1)
@@ -233,6 +253,11 @@ def serverMain():
         userName = sentence.split(' ')[1].strip()
         if(codeWord == "PlayGame"):
             serverGame(connection_socket, userName)
+        elif(codeWord == "ShowHighscores"):
+            serverShowHighscores(connection_socket)
+        elif(codeWord == "FindHighscores"):
+            print("Looking for score")
+            serverFindHighscore(connection_socket, userName)
 
         
         connection_socket.close()
