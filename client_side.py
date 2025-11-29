@@ -17,8 +17,9 @@ def start_new_game(client_socket):
         highestChips = 20
         while gameTime:
             #Start the game
-            
+            print("**\n")
             dealtHandMessage = client_socket.recv(1024).decode()
+            print("Is it you?\n")
             if dealtHandMessage.startswith(userName):
 
                 #check to make sure the full message reached the client
@@ -112,29 +113,35 @@ def start_new_game(client_socket):
             if winner.startswith("User"):
                 print(winner)
                 userChips += currPool
-                if userChips > highestChips:
+                if int(userChips) > highestChips:
                     highestChips = userChips
             elif winner.startswith("Computer"):
                 print(winner)
-                userChips -= currPool
+                userChips -= int(currPool)
             else:
                 print("Tie")
 
 
 
-            if userChips <= 0:
+            if int(userChips) <= 0:
                 #Game end
                 print("Game Over.\n")
                 print("Thank you for playing.\n")
                 with open("highscore.txt", "a") as bread:
-                    bread.write(userName + ", " + str(highestChips))
+                    bread.write(userName + ", " + str(highestChips) + "\n")
                 bread.close()
                 gameTime = False
+                stopper = "Stop"
+                client_socket.send(stopper.encode())
+                break
             
             cont = input("Another round? (y/n)\n")
             if cont.lower() == "y":
                 #Continue on.
                 print("Good Luck.")
+                poll = "Keep going"
+                client_socket.send(poll.encode())
+
             elif cont.lower() =="n":
                 #Quiting
                 print("Thank you for playing.\n")
@@ -142,6 +149,8 @@ def start_new_game(client_socket):
                     bread.write(userName + ", " + str(highestChips))
                 bread.close()
                 gameTime = False
+                stopper = "Stop"
+                client_socket.send(stopper.encode())
 
 
     else:

@@ -165,66 +165,72 @@ def serverGame(connection_socket, userName):
     activeGame = True
 
     userChips = 20
-    currPool = 0
-    userHand = []
-    compHand = []
 
-    if(activeGame):
+    while(activeGame):
+        currPool = 0
+        userHand = []
+        compHand = []
       #deal userHand and compHand
-      for i in range(5):
-        userHand.append(deckCard())
-        compHand.append(deckCard())
-        userHandString = " ".join(userHand)
-        compHandString = " ".join(compHand)
-    userChips -= 1
-    currPool += 1
-    dealt_hand = uN + " " + userHandString + " " + str(userChips) + " " +  compHandString + " \n"
-    connection_socket.send(dealt_hand.encode())
+        for i in range(5):
+            userHand.append(deckCard())
+            compHand.append(deckCard())
+            userHandString = " ".join(userHand)
+            compHandString = " ".join(compHand)
+        userChips -= 1
+        currPool += 1
+        dealt_hand = uN + " " + userHandString + " " + str(userChips) + " " +  compHandString + " \n"
+        print("Do you go through?\n")
+        connection_socket.send(dealt_hand.encode())
 
-    drawAction = connection_socket.recv(1024).decode()
-    if drawAction.startswith("RedrawCards"):
-        parts=drawAction.split(" ")
-        for i in parts[1:]:
-            if i.strip().isdigit():
-                cardToReplace = int(i)
-                if 1 <= cardToReplace <= 5:
-                    newCard = deckCard()
-                    userHand[cardToReplace-1] = newCard
+        drawAction = connection_socket.recv(1024).decode()
+        if drawAction.startswith("RedrawCards"):
+            parts=drawAction.split(" ")
+            for i in parts[1:]:
+                if i.strip().isdigit():
+                    cardToReplace = int(i)
+                    if 1 <= cardToReplace <= 5:
+                        newCard = deckCard()
+                        userHand[cardToReplace-1] = newCard
 
-        userHandString = " ".join(userHand)
-        new_hand = "RedealtCards " + userHandString + " \n"
-        connection_socket.send(new_hand.encode())
+            userHandString = " ".join(userHand)
+            new_hand = "RedealtCards " + userHandString + " \n"
+            connection_socket.send(new_hand.encode())
 
-    elif drawAction.startswith("DrawDecline"):
-        print("User will not redraw")
-        connection_socket.send("DrawDeclinedOK \n".encode())
+        elif drawAction.startswith("DrawDecline"):
+            print("User will not redraw")
+            connection_socket.send("DrawDeclinedOK \n".encode())
 
-    betAction = connection_socket.recv(1024).decode()
-    if betAction.startswith("RaiseBet"):
-        raiseAmount = int(betAction.split(" ")[1])
-        userChips -= raiseAmount
-        currPool += raiseAmount
-        newBetMessage = "BetRaised " + str(userChips) + " " + str(currPool) + " \n"
-        connection_socket.send(newBetMessage.encode())
+        betAction = connection_socket.recv(1024).decode()
+        if betAction.startswith("RaiseBet"):
+            raiseAmount = int(betAction.split(" ")[1])
+            userChips -= raiseAmount
+            currPool += raiseAmount
+            newBetMessage = "BetRaised " + str(userChips) + " " + str(currPool) + " \n"
+            connection_socket.send(newBetMessage.encode())
 
-    elif betAction.startswith("Check"):
-        print("User checks")
-        connection_socket.send("CheckOK \n".encode())
+        elif betAction.startswith("Check"):
+            print("User checks")
+            connection_socket.send("CheckOK \n".encode())
 
-    playHand = connection_socket.recv(1024).decode()
-    print(playHand)
-    if playHand == "PlayingHand":
-        winnerNum = compareHands(userHand, compHand)
-        if winnerNum == 1:
-            #User wins
-            winnerAn = "User Wins."
-        elif winnerNum == 2:
+        playHand = connection_socket.recv(1024).decode()
+        print(playHand)
+        if playHand == "PlayingHand":
+            winnerNum = compareHands(userHand, compHand)
+            if winnerNum == 1:
+                #User wins
+                winnerAn = "User Wins."
+            elif winnerNum == 2:
+                winnerAn = "Computer Wins."
+            else:
+                winnerAn = "Tie."
+        elif playHand == "Fold":
             winnerAn = "Computer Wins."
-        else:
-            winnerAn = "Tie."
-    elif playHand == "Fold":
-        winnerAn = "Computer Wins."
-    connection_socket.send(winnerAn.encode())
+        connection_socket.send(winnerAn.encode())
+
+        cont = connection_socket.recv(1024).decode()
+        if(cont == "Stop"):
+            break
+
 
 def serverShowHighscores(connection_socket):
     responseMessage = "EntireHighscore "
