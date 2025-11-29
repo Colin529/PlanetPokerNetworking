@@ -71,18 +71,8 @@ def handValue(hand):
             #amountJup += 1
             amounts[7] += 1
 
-    pair = False
-    twoPairs = False
-    threeKind = False
-    straight = False
-    fullHouse = False
-    fourKind = False
-    fiveKind = False
-    whereThree = 0
-    whereTwo = 0
-    whereFour = 0
-    whereFive = 0
-    endStraight = 0
+    pair, twoPairs, threeKind, straight, fullHouse, fourKind, fiveKind = False
+    whereThree, whereTwo,  whereFour, whereFive, endStraight = 0
     for i in range(len(amounts)):
         if amounts[i] == 2:
             whereTwo = i
@@ -105,7 +95,15 @@ def handValue(hand):
             whereFive = i
             fiveKind = True
             break
-        
+    for i in range(len(amounts) - 5):
+        if amounts[i] == 1:
+            if amounts[i+1] == 1:
+                if amounts[i+2] == 1:
+                    if amounts[i+3] == 1:
+                        if amounts[i+4] == 1:
+                            straight = True
+                            endStraight = i + 4
+
     if fiveKind:
         value = 10000 + whereFive + 1
     elif fourKind:
@@ -119,13 +117,12 @@ def handValue(hand):
     elif pair:
         value = 4000 + whereTwo + 1
     elif straight:
-        value = 7000 + 
-
-
-
-
-
-    
+        value = 7000 + endStraight
+    else:
+        for i in range(len(amounts)):
+            if amounts[i] == 1:
+                value = i
+    return value
 
 
 
@@ -133,6 +130,17 @@ def handValue(hand):
 def compareHands(userHand, compHand):
     currentHand = userHand
     enemyHand = compHand
+    cur = handValue(currentHand)
+    ene = handValue(enemyHand)
+    if(cur > ene):
+        #User wins
+        return 1
+    elif(cur < ene):
+        #Computer wins
+        return 2
+    else:
+        #Tie
+        return 0
 
 
 def serverGame(connection_socket, userName):
@@ -189,8 +197,19 @@ def serverGame(connection_socket, userName):
         connection_socket.send("CheckOK \n".encode())
 
 
-
-
+    playHand = connection_socket.recv(1024).decode()
+    if playHand == "PlayingHand":
+        winnerNum = compareHands(userHand, compHand)
+        if winnerNum == 1:
+            #User wins
+            winnerAn = "User Wins."
+        elif winnerNum == 2:
+            winnerAn = "Computer Wins."
+        else:
+            winnerAn = "Tie."
+    elif playHand == "Fold":
+        winnerAn = "Computer Wins."
+    connection_socket.send(winnerAn.encode())
         
 
 
