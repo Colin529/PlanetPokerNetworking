@@ -91,6 +91,28 @@ def start_new_game(client_socket):
         elif newBet.startswith("CheckOK"):
             print("User Checked")
 
+        #Play or Fold
+        timeToPlayHand = input("Play Cards or Fold? (1 to play, 2 to fold)")
+        while True:
+            if timeToPlayHand == 1:
+                playTime = "PlayingHand"
+                break
+            elif timeToPlayHand == 2:
+                playTime = "Fold"
+                break
+            else:
+                print("Invaild. Please try again.")
+        winner = client_socket.recv(1024).decode()
+        if winner.startswith("User"):
+            print(winner)
+            userChips += currPool
+        elif winner.startswith("Computer"):
+            print(winner)
+            userChips -= currPool
+        else:
+            print("Tie")
+        
+                
     else:
         print(f"ERROR: Message in unexpected format. Message: '{gameResponse}'")
         return -1
