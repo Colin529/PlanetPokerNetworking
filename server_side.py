@@ -275,7 +275,10 @@ def serverFindHighscore(connection_socket, userName):
 
     connection_socket.send(responseMessage.encode())
 
-
+def chill(connection_socket):
+    oho = connection_socket.recv(1024).decode()
+    if(oho == "Chill Out"):
+        connection_socket.send(oho.encode())
 
 
 def serverMain():
@@ -289,13 +292,14 @@ def serverMain():
     pain = 0
     
     while True:
+        
         print("Re")
         sentence = connection_socket.recv(1024).decode()
         print("Got\n")
         #print(sentence + "*")
         
         while sentence == '':
-            sentence = "Broken Time"
+            sentence = connection_socket.recv(1024).decode()
         s = sentence
 
         codeWord = s.split(' ')[0].strip()
@@ -312,16 +316,12 @@ def serverMain():
             
         elif(codeWord == "Chill"):
             print("Rules are being looked at.")
-            oho = connection_socket.recv(1024).decode()
-            print(oho)
-        elif(codeWord == "Broken"):
-            pain += 1
+            chill(connection_socket)
             
         else:
             connection_socket.close()
             break
         
-
 
         
     connection_socket.close()

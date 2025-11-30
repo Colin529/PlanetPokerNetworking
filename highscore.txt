@@ -8,3 +8,4 @@ Kale,20
 Kale2,21Bern,40
 Joshj,20
 oo,20
+High,40

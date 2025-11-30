@@ -197,7 +197,7 @@ def view_scoreboard(client_socket):
         print(highscoreResponse)
 
 def view_rules(client_socket):
-    #client_socket.send("Chill Out".encode())
+    client_socket.send("Chill Out".encode())
     print("The player and bot will both draw five random cards.")
     print("The winner is decided by who has the most points.")
     print("Points are gained by cards and the pattern they appear in.")
@@ -210,11 +210,12 @@ def view_rules(client_socket):
     print("6th - Two Pairs.")
     print("7th - One Pair.")
     print("8th - No Pair.")
-    #con = client_socket.recv(1024).decode()
+    client_socket.send("Chill Out".encode())
+    con = client_socket.recv(1024).decode()
     #client_main()
     
 def view_card_values(client_socket):
-    #client_socket.send("Chill Out".encode())
+    client_socket.send("Chill Out".encode())
     print("Each card has a value like Poker cards.")
     print("Jupiter - 8 points")
     print("Saturn - 7 points")
@@ -224,7 +225,8 @@ def view_card_values(client_socket):
     print("Venus - 3 points")
     print("Mars - 2 points")
     print("Mercury - 1 points")
-    #con = client_socket.recv(1024).decode()
+    client_socket.send("Chill Out".encode())
+    con = client_socket.recv(1024).decode()
     #client_main()
 
 def client_main():
@@ -256,10 +258,10 @@ def client_main():
             view_scoreboard(client_socket)
         else:
             #Exiting
+            client_socket.send("Done Here".encode())
             client_socket.close()
             break
         
-        client_socket.close()
-
+    client_socket.close()
 
 client_main()
