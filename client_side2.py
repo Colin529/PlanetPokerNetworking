@@ -1,0 +1,268 @@
+# client server V1.0
+# Hefelc
+# 11/27/2025
+# Setting up gameflow. Some game logic is being moved to server side
+
+from socket import *
+from _thread import *
+from random import *
+
+def start_new_game(client_socket):
+
+    userName = input("Enter Username: ")
+    playingMessage = "PlayGame " + userName + " \n"
+    client_socket.send(playingMessage.encode())
+    gameResponse = client_socket.recv(1024).decode()
+
+    continue_play = True
+    gameCount = 1
+    while (continue_play != False):
+
+        if gameCount > 1:
+            gameResponse = "" #empty gameResponse so we do not get a carry over answer
+            playingMessage = "PlayGame " + userName + " \n"
+            client_socket.send(playingMessage.encode())
+            gameResponse = client_socket.recv(1024).decode()
+
+        if "Welcome" in gameResponse:
+            gameTime = True
+            if gameTime:
+                #Start the game
+                dealtHandMessage = client_socket.recv(1024).decode()
+                if dealtHandMessage.startswith(userName):
+
+                    #check to make sure the full message reached the client
+                    try:
+                        parts = dealtHandMessage.split(" ")
+
+                        if len(parts) < 12:
+                            raise ValueError("Message was malformed or incomplete.")
+
+                        userHand = " ".join(parts[1:6])
+                        userChips = int(parts[6].strip())
+                        compHand = " ".join(parts[7:12])
+
+                        currPool = 1 #current pool will always start at 1, taken at the server side
+
+                    except(IndexError, ValueError) as e:
+                        print("ERROR: Failed to parse message")
+                        print(f"Received message: '{dealtHandMessage}'")
+                        return -1
+
+                else:
+                    print(f"ERROR: Message in unexpected format. Message: '{dealtHandMessage}'")
+                    return -1
+
+            print("Current Prize Pool = " + str(currPool))
+            print("User Chips = " + str(userChips) + "\n\n")
+            print("Users Hand:\n" + userHand + "\n")
+
+            #Redraw Cards Logic
+            userReplaceCards = input("Would you like to replace any of your cards? (y/n)")
+            if userReplaceCards.lower() == "y":
+                print("Current User Hand:\n" + userHand)
+                replaceCards = input("Which cards would you like to replace? (ex. 1 2 3 or 4 5)").strip()
+                redrawCardsMessage = "RedrawCards " + replaceCards + " \n"
+                client_socket.send(redrawCardsMessage.encode())
+
+            else:
+                drawDeclineMessage = "DrawDecline"
+                client_socket.send(drawDeclineMessage.encode())
+
+            newHand = client_socket.recv(1024).decode()
+            if newHand.startswith("RedealtCards"):
+                parts = newHand.strip().split(" ")
+                userHand = " ".join(parts[1:])
+                print("Users New Hand")
+                print(userHand)
+            elif newHand.startswith("DrawDeclinedOK"):
+                print("User Declined Draw")
+
+
+            #Bet logic
+            userRaiseBet = input("Would you like to raise your bet? (y/n)")
+            if userRaiseBet.lower() == "y":
+                raiseAmount = input(f"How many chips would you like to raise? Current Amount: '{userChips}': ")
+                if int(raiseAmount) <= userChips:
+                    raiseBetMessage = "RaiseBet " + raiseAmount + " \n"
+                    client_socket.send(raiseBetMessage.encode())
+                elif int(raiseAmount) > userChips:
+                    print("ERROR: Amount cannot be greater than your chips")
+                    return -1
+            elif userRaiseBet.lower() == "n":
+                checkMessage = "check"
+                client_socket.send(checkMessage.encode())
+
+            newBet = client_socket.recv(1024).decode()
+            if newBet.startswith("BetRaised "):
+                parts = newBet.strip().split(" ")
+                userChips = parts[1]
+                currPool = parts[2]
+                print("User Chips = " + str(userChips))
+                print("Current Pool = " + str(currPool))
+            elif newBet.startswith("CheckOK"):
+                print("User Checked")
+
+            '''
+            #Reveal First three cards
+            cardReveal = compHand.split()
+            for i in range(3):
+                print(userHand[i])
+            '''
+
+            #Play or Fold
+            while True:
+                timeToPlayHand = input("Play Cards or Fold? (1 to play, 2 to fold): ")
+                if timeToPlayHand == "1":
+                    playTime = "PlayingHand"
+                    break
+                elif timeToPlayHand == "2":
+                    playTime = "Fold"
+                    break
+                else:
+                    print("Invaild. Please try again.")
+
+
+            winner = client_socket.recv(1024).decode()
+            if winner.startswith("User") or winner.startswith("Computer") or winner.startswith("Tied"):
+                parts = winner.strip().split(" ")
+                condition = parts[0]
+                userValue = parts[1]
+                compValue = parts[2]
+                print("User's Hand:\n" + userHand)
+                print(f"Hand Value: {userValue}")
+                print("\nDealer's Hand:\n" + compHand)
+                print(f"Hand Value: {compValue}")
+                if condition == "User":
+                    print("USER WINS")
+                    currPool = currPool * 2
+                    userChips += currPool
+                elif condition == "Computer":
+                    print("COMPUTER WINS")
+                elif condition == "Tied":
+                    print("THE HANDS TIED")
+            else:
+                print("AN ERROR HAS OCCURRED DETERMINING THE WINNER")
+
+
+
+
+        else:
+            print(f"ERROR: Message in unexpected format. Message: '{gameResponse}'")
+            return -1
+
+        while True:
+            continuePlayInput = input("Will you play another round? (y/n): ")
+            continuePlayInput = continuePlayInput.lower()
+            if continuePlayInput == "y":
+                print("Alright! I'll deal them up.")
+                break
+            elif continuePlayInput == "n":
+                print("Alright! See you next time.")
+                continue_play = False
+                break
+            else:
+                print(f"Input: '{continuePlayInput}' not recognized")
+
+
+
+def view_scoreboard(client_socket):
+    highscoreMessage = ""
+    while(True):
+        highscores_action = input("1 - View All Highscores\n"
+                                "2 - Search For Username in Highscores\n"
+                                "Enter Command:")
+        if highscores_action == "1":
+            highscoreMessage = "ShowHighscores \n"
+            break
+        elif highscores_action == "2":
+            username_search = input("Enter a username to search: ")
+            highscoreMessage = "FindHighscores " + username_search + " \n"
+            break
+        else:
+            print("INVALID INPUT")
+            break
+
+    client_socket.send(highscoreMessage.encode())
+    highscoreResponse = client_socket.recv(1024).decode()
+
+    #response if wanting entire highscore file
+    if highscoreResponse.startswith("EntireHighscore "):
+        removeHeader = highscoreResponse.replace("EntireHighscore ", "")
+        rows = removeHeader.split("\n")
+        for x in rows:
+            if not x.strip():
+                continue
+
+            parts = x.split(" ")
+            rank = parts[0]
+            username = parts[1]
+            score = parts[2]
+            print(f"Ranks: #{rank} -- {username} -- score: {score}")
+
+
+    elif highscoreResponse.startswith("UsernameSearch "):
+        print(highscoreResponse)
+
+def view_rules():
+    print("The player and bot will both draw five random cards.")
+    print("The winner is decided by who has the most points.")
+    print("Points are gained by cards and the pattern they appear in.")
+    print("Patterns by most points to least points:")
+    print("1st - Five of a Kind.")
+    print("2nd - Four of a Kind.")
+    print("3rd - Full House.")
+    print("4th - Straight.")
+    print("5th - Three of a Kind.")
+    print("6th - Two Pairs.")
+    print("7th - One Pair.")
+    print("8th - No Pair.")
+    
+def view_card_values():
+    print("Each card has a value like Poker cards.")
+    print("Jupiter - 8 points")
+    print("Saturn - 7 points")
+    print("Uranus - 6 points")
+    print("Neptune - 5 points")
+    print("Earth - 4 points")
+    print("Venus - 3 points")
+    print("Mars - 2 points")
+    print("Mercury - 1 points")
+
+def client_main():
+    server_IP = 'localhost'
+    server_port = 12006
+    while True:
+        client_socket = socket(AF_INET, SOCK_STREAM)
+        client_socket.connect((server_IP, server_port))
+
+        print("Welcome to Planet Poker! Select your choice!")
+        print("1 - Play Planet Poker.")
+        print("2 - Look up rules.")
+        print("3 - Look up card values.")
+        print("4 - Look up highest score.")
+        print("Q - Exit the application.")
+
+        ##choice = input("Enter command: ")
+        choice = input("Please make your choice.")
+        if(choice == '1'):
+            #Play Game
+            start_new_game(client_socket)
+        elif(choice == '2'):
+            #Rules
+            view_rules()
+        elif(choice == '3'):
+            #Card Values
+            view_card_values()
+        elif(choice == '4'):
+            #Highest Score
+            view_scoreboard(client_socket)
+        else:
+            #Exiting
+            client_socket.close()
+            break
+        
+        client_socket.close()
+
+
+client_main()
