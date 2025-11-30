@@ -108,6 +108,9 @@ def start_new_game(client_socket):
                     print("Invaild. Please try again.")
                     timeToPlayHand = input("(1 to play, 2 to fold)")
             client_socket.send(playTime.encode())    
+
+            print("User's Hand:\n" + userHand)
+            print("\nDealer's Hand:\n" + compHand)
             
             winner = client_socket.recv(1024).decode()
             if winner.startswith("User"):
