@@ -289,15 +289,10 @@ def serverMain():
 
     print('The server is ready to recieve')
     connection_socket, addr = server_socket.accept()
-    pain = 0
+    
     
     while True:
-        
-        print("Re")
         sentence = connection_socket.recv(1024).decode()
-        print("Got\n")
-        #print(sentence + "*")
-        
         while sentence == '':
             sentence = connection_socket.recv(1024).decode()
         s = sentence
@@ -317,7 +312,6 @@ def serverMain():
         elif(codeWord == "Chill"):
             print("Rules are being looked at.")
             chill(connection_socket)
-            
         else:
             connection_socket.close()
             break
