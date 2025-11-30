@@ -219,6 +219,7 @@ def serverGame(connection_socket, userName):
             if winnerNum == 1:
                 #User wins
                 winnerAn = "User Wins."
+                userChips = int(userChips) + (2 * int(currPool))
             elif winnerNum == 2:
                 winnerAn = "Computer Wins."
             else:
@@ -240,9 +241,9 @@ def serverShowHighscores(connection_socket):
             #skip header
             for line in lines[1:]:
                 parts = line.strip().split(',')
-                if len(parts) == 3:
-                    rank, username, score = parts
-                    responseMessage += f"{rank} {username} {score}\n"
+                if len(parts) == 2:
+                    username, score = parts
+                    responseMessage += f"{username} {score}\n"
     except FileNotFoundError:
         response = "Highscore file not found.\n"
 
@@ -259,10 +260,10 @@ def serverFindHighscore(connection_socket, userName):
             #skip header
             for line in lines[1:]:
                 parts = line.strip().split(',')
-                if len(parts) == 3:
-                    rank, username_found, score = parts
+                if len(parts) == 2:
+                    username_found, score = parts
                     if username_found.strip() == userName:
-                        responseMessage += f"Rank {rank}: {username_found} - {score}\n"
+                        responseMessage += f"{username_found} - {score}\n"
                         flag = True
                         break
         if not flag:

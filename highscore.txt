@@ -1,4 +1,8 @@
-rank,username,score
-1,John,33
-2,Steve,21
-3,Barry,11Josh, 146
+username,score
+John,33
+Steve,21
+Barry,31
+Josh,146
+Harry,20
+Kale,20
+Kale2,21

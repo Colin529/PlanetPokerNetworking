@@ -17,9 +17,9 @@ def start_new_game(client_socket):
         highestChips = 20
         while gameTime:
             #Start the game
-            print("**\n")
+            #print("**\n")
             dealtHandMessage = client_socket.recv(1024).decode()
-            print("Is it you?\n")
+            #print("Is it you?\n")
             if dealtHandMessage.startswith(userName):
 
                 #check to make sure the full message reached the client
@@ -112,12 +112,12 @@ def start_new_game(client_socket):
             winner = client_socket.recv(1024).decode()
             if winner.startswith("User"):
                 print(winner)
-                userChips += currPool
-                if int(userChips) > highestChips:
-                    highestChips = userChips
+                userChips = int(userChips) + (2 * int(currPool))
+                if int(userChips) > int(highestChips):
+                    highestChips = int(userChips)
             elif winner.startswith("Computer"):
                 print(winner)
-                userChips -= int(currPool)
+                #userChips = int(userChips) - int(currPool)
             else:
                 print("Tie")
 
@@ -128,7 +128,7 @@ def start_new_game(client_socket):
                 print("Game Over.\n")
                 print("Thank you for playing.\n")
                 with open("highscore.txt", "a") as bread:
-                    bread.write(userName + ", " + str(highestChips) + "\n")
+                    bread.write(userName + "," + str(highestChips) + "\n")
                 bread.close()
                 gameTime = False
                 stopper = "Stop"
@@ -146,7 +146,7 @@ def start_new_game(client_socket):
                 #Quiting
                 print("Thank you for playing.\n")
                 with open("highscore.txt", "a") as bread:
-                    bread.write(userName + ", " + str(highestChips))
+                    bread.write(userName + "," + str(highestChips) + "\n")
                 bread.close()
                 gameTime = False
                 stopper = "Stop"
@@ -187,10 +187,10 @@ def view_scoreboard(client_socket):
                 continue
 
             parts = x.split(" ")
-            rank = parts[0]
-            username = parts[1]
-            score = parts[2]
-            print(f"Ranks: #{rank} -- {username} -- score: {score}")
+            #rank = parts[0]
+            username = parts[0]
+            score = parts[1]
+            print(f"{username} -- score: {score}")
 
 
     elif highscoreResponse.startswith("UsernameSearch "):
