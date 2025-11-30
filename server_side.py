@@ -10,6 +10,7 @@ scaling if multiplayer was desired
 from socket import * 
 from _thread import *
 from random import *
+import time
 
 #card_deck
 def deckCard():
@@ -274,6 +275,9 @@ def serverFindHighscore(connection_socket, userName):
 
     connection_socket.send(responseMessage.encode())
 
+
+
+
 def serverMain():
     server_port = 12006
     server_socket = socket(AF_INET, SOCK_STREAM)
@@ -281,22 +285,45 @@ def serverMain():
     server_socket.listen(1)
 
     print('The server is ready to recieve')
-
+    connection_socket, addr = server_socket.accept()
+    pain = 0
+    
     while True:
-        connection_socket, addr = server_socket.accept()
-
+        print("Re")
         sentence = connection_socket.recv(1024).decode()
-        codeWord = sentence.split(' ')[0].strip()
-        userName = sentence.split(' ')[1].strip()
+        print("Got\n")
+        #print(sentence + "*")
+        
+        while sentence == '':
+            sentence = "Broken Time"
+        s = sentence
+
+        codeWord = s.split(' ')[0].strip()
+        userName = s.split(' ')[1].strip()
         if(codeWord == "PlayGame"):
             serverGame(connection_socket, userName)
+            
         elif(codeWord == "ShowHighscores"):
             serverShowHighscores(connection_socket)
+            
         elif(codeWord == "FindHighscores"):
             print("Looking for score")
             serverFindHighscore(connection_socket, userName)
+            
+        elif(codeWord == "Chill"):
+            print("Rules are being looked at.")
+            oho = connection_socket.recv(1024).decode()
+            print(oho)
+        elif(codeWord == "Broken"):
+            pain += 1
+            
+        else:
+            connection_socket.close()
+            break
+        
+
 
         
-        connection_socket.close()
+    connection_socket.close()
 
 serverMain()

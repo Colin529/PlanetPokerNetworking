@@ -197,6 +197,7 @@ def view_scoreboard(client_socket):
         print(highscoreResponse)
 
 def view_rules(client_socket):
+    #client_socket.send("Chill Out".encode())
     print("The player and bot will both draw five random cards.")
     print("The winner is decided by who has the most points.")
     print("Points are gained by cards and the pattern they appear in.")
@@ -209,9 +210,11 @@ def view_rules(client_socket):
     print("6th - Two Pairs.")
     print("7th - One Pair.")
     print("8th - No Pair.")
-    client_main()
+    #con = client_socket.recv(1024).decode()
+    #client_main()
     
-def view_card_values():
+def view_card_values(client_socket):
+    #client_socket.send("Chill Out".encode())
     print("Each card has a value like Poker cards.")
     print("Jupiter - 8 points")
     print("Saturn - 7 points")
@@ -221,15 +224,15 @@ def view_card_values():
     print("Venus - 3 points")
     print("Mars - 2 points")
     print("Mercury - 1 points")
-    client_main()
+    #con = client_socket.recv(1024).decode()
+    #client_main()
 
 def client_main():
     server_IP = 'localhost'
     server_port = 12006
+    client_socket = socket(AF_INET, SOCK_STREAM)
+    client_socket.connect((server_IP, server_port))
     while True:
-        client_socket = socket(AF_INET, SOCK_STREAM)
-        client_socket.connect((server_IP, server_port))
-
         print("Welcome to Planet Poker! Select your choice!")
         print("1 - Play Planet Poker.")
         print("2 - Look up rules.")
